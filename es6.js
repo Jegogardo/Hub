@@ -1,7 +1,7 @@
 class Bhv{
 
-    static test(){
-        console.log(`This is ${this.name} class in Behaviour`);
+    static testStr( str ){
+        console.log( str || `This is ${this.name} class in Behaviour`);
     }
 
 
@@ -16,7 +16,7 @@ class Bhv{
 
 class Hub extends Bhv {
     
-
+    
 
 }
 
