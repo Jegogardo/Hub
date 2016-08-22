@@ -1,6 +1,6 @@
 const ROOT = "../../"
-
-
+//const READYSTATE = [0,1,2,3,4]
+//const STATUS
 class Bhv{
 
     static testStr( str ){
@@ -9,9 +9,12 @@ class Bhv{
 
 
 
-    set whereami ( str ) { this.debug_str = str
-                        console.log( this.debug_str )
-                    }
+    set whereami ( str = null ) {
+        if( str == null )
+            str = "I'm here!!!" 
+        this.debug_str = str
+        console.log( this.debug_str )
+        }
     get whereami () { console.log( this.debug_str || "I'm here!!!" )}
 
     get debug () { console.log( this ) }
@@ -20,6 +23,8 @@ class Bhv{
 }
 
 class Hub extends Bhv {
+
+    
 
     get method(){ return this._method;}
     set method ( m )  {
@@ -64,6 +69,7 @@ class Hub extends Bhv {
     
     constructor( url, method = "GET", param = null, async = true ) {
         super()
+        this.url = url;
         this.req = new XMLHttpRequest()
         this.method = method
         this.queryString = param;
@@ -71,8 +77,21 @@ class Hub extends Bhv {
                 
     }
 
+    abort(){
+
+    }
+
+    success(){
+
+    }
+
+    response(){
+        
+    }
+
     setRequestHeader( header ,value ){
         this.req.setRequestHeader( header, value );
+        return this;
     }
 
     connect(){
@@ -86,14 +105,27 @@ class Hub extends Bhv {
                 this.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             }
 
-            
             this.req.send( this.queryString );
+
+            return this;
         }
             
     }
 
+    static connect( ...param ){
+        //debugger
+        var [url, method, param, async] = param;
+        let temp = new this( url, method, param, async ).connect();
+
+                
+    }
+
+
+
 }
 
 //let hub = new Hub( "prova","GET",{data:"",t:"c"} );
-let hub = new Hub( `${ROOT}index.php`,"POST", "data=&t=c" );
+let hub = new Hub( `${ROOT}index.php`,"POST", "data=&t=c" ).connect();
+//Hub.connect( `${ROOT}index.php`,"POST", "data=&t=c" );
+Hub.connect( `${ROOT}index.php`,"POST", "data=&t=c" )
 hub.debug;
