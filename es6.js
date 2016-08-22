@@ -1,3 +1,6 @@
+const ROOT = "../../"
+
+
 class Bhv{
 
     static testStr( str ){
@@ -25,9 +28,7 @@ class Hub extends Bhv {
             this._method = m
         else
             console.error("Method can be set to GET or POST value");
-        }
-
-    
+    }   
     
     get queryString(){ return this._queryString }
     set queryString( param ){
@@ -67,8 +68,7 @@ class Hub extends Bhv {
         this.method = method
         this.queryString = param;
         this.async = async;
-        
-        
+                
     }
 
     setRequestHeader( header ,value ){
@@ -95,5 +95,5 @@ class Hub extends Bhv {
 }
 
 //let hub = new Hub( "prova","GET",{data:"",t:"c"} );
-let hub = new Hub( "localhost/index.php","POST", "data=&t=c" );
+let hub = new Hub( `${ROOT}index.php`,"POST", "data=&t=c" );
 hub.debug;
