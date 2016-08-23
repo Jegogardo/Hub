@@ -2,3 +2,4 @@ Hub:
     ☐ reset parameters @today 
     ☐ upload progress event @low 
     ☐ manage paramaters and callbacks inside two different object as arguments 
+    ☐ __proto__ issue @low 

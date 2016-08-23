@@ -10,6 +10,30 @@
 })();
 
 
+//Polyfill Object.assign
+if (typeof Object.assign != 'function') {
+  Object.assign = function(target) {
+    'use strict';
+    if (target == null) {
+      throw new TypeError('Cannot convert undefined or null to object');
+    }
+
+    target = Object(target);
+    for (var index = 1; index < arguments.length; index++) {
+      var source = arguments[index];
+      if (source != null) {
+        for (var key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+          }
+        }
+      }
+    }
+    return target;
+  };
+}
+
+
 
 const ROOT = "../../"
 const CALLBACKS = ["onsuccess", "ondone", "onstart", "onerror"]
@@ -63,8 +87,8 @@ class Hub extends Bhv {
 
     get queryString() { return this._queryString }
     set queryString(param) {
-        this._queryString = {}
-
+        //this._queryString = {}
+        //debugger
         if (param != null) {
 
             if (typeof param === "string") {
@@ -82,13 +106,14 @@ class Hub extends Bhv {
                 })
             }
             else {
-                this._queryString = param
+                this._queryString = Object.assign(this._queryString, param)
             }
 
 
 
         }
 
+        
         this.queryString.serialize = () => {
             var ampersand = "";
             let temp = this.method == "GET" ? "?" : ""
@@ -133,6 +158,7 @@ class Hub extends Bhv {
         this._onsuccess = null
         this._onstart = null
         this._ondone = null
+        this._queryString = {}
         this.req.onreadystatechange = this.statechange.bind(this)
         this.isHeaderSet = false
 
@@ -218,6 +244,10 @@ class Hub extends Bhv {
         return this
     }
 
+    cleanParam(){
+        this.queryString = {}
+    }
+
     setRequestHeader(header, value) {
         this.isHeaderSet = true
         this.req.setRequestHeader(header, value);
@@ -301,16 +331,17 @@ hub.onprogress = () =>{
         onstart: (result) => { console.log("start") }
     })*/
 
-let hub2 = Hub.connect(`${ROOT}index.php`, "POST", "data=prova",
-    {
+let hub2 = new Hub(`${ROOT}index.php`, "POST"
+    /*{
         onsuccess: (result) => { console.log(result.response) },
         ondone: (result) => { console.log("end") },
         onstart: (result) => { console.log("start") }
-    })
+    }*/
+    ).addParam("data","value").addParam({testo:"testo"}).connect()
 
 
 
 
 
 
-//hub2.debug;
+hub2.debug;

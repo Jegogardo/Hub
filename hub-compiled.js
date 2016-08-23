@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -21,6 +21,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     };
 })();
 
+//Polyfill Object.assign
+if (typeof Object.assign != 'function') {
+    Object.assign = function (target) {
+        'use strict';
+
+        if (target == null) {
+            throw new TypeError('Cannot convert undefined or null to object');
+        }
+
+        target = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+            var source = arguments[index];
+            if (source != null) {
+                for (var key in source) {
+                    if (Object.prototype.hasOwnProperty.call(source, key)) {
+                        target[key] = source[key];
+                    }
+                }
+            }
+        }
+        return target;
+    };
+}
+
 var ROOT = "../../";
 var CALLBACKS = ["onsuccess", "ondone", "onstart", "onerror"];
 //const READYSTATE = [0,1,2,3,4]
@@ -33,7 +57,7 @@ var Bhv = function () {
     }
 
     _createClass(Bhv, [{
-        key: "debug",
+        key: 'debug',
         get: function get() {
             console.log(this);
         },
@@ -41,12 +65,12 @@ var Bhv = function () {
             console.log(obj);
         }
     }], [{
-        key: "testStr",
+        key: 'testStr',
         value: function testStr(str) {
-            console.log(str || "This is " + this.name + " class in Behaviour");
+            console.log(str || 'This is ' + this.name + ' class in Behaviour');
         }
     }, {
-        key: "whereami",
+        key: 'whereami',
         value: function whereami(str) {
             console.log(str || "I'm here!!!");
         }
@@ -59,7 +83,7 @@ var Hub = function (_Bhv) {
     _inherits(Hub, _Bhv);
 
     _createClass(Hub, [{
-        key: "url",
+        key: 'url',
         get: function get() {
             return this._url;
         },
@@ -70,7 +94,7 @@ var Hub = function (_Bhv) {
             } else this._url = url;
         }
     }, {
-        key: "method",
+        key: 'method',
         get: function get() {
             return this._method;
         },
@@ -79,15 +103,15 @@ var Hub = function (_Bhv) {
             if (m === "GET" || m === "POST") this._method = m;else console.error("Method can be set to GET or POST value");
         }
     }, {
-        key: "queryString",
+        key: 'queryString',
         get: function get() {
             return this._queryString;
         },
         set: function set(param) {
             var _this2 = this;
 
-            this._queryString = {};
-
+            //this._queryString = {}
+            //debugger
             if (param != null) {
 
                 if (typeof param === "string") {
@@ -104,7 +128,7 @@ var Hub = function (_Bhv) {
                         _this2._queryString[b[0]] = b[1];
                     });
                 } else {
-                    this._queryString = param;
+                    this._queryString = Object.assign(this._queryString, param);
                 }
             }
 
@@ -114,7 +138,7 @@ var Hub = function (_Bhv) {
 
                 for (var i in _this2._queryString) {
                     if (i != "serialize") {
-                        temp += "" + ampersand + i + "=" + _this2._queryString[i];
+                        temp += '' + ampersand + i + '=' + _this2._queryString[i];
                         var ampersand = "&";
                     }
                 }
@@ -123,7 +147,7 @@ var Hub = function (_Bhv) {
             return this._queryString;
         }
     }, {
-        key: "async",
+        key: 'async',
         get: function get() {
             return this._async;
         },
@@ -131,7 +155,7 @@ var Hub = function (_Bhv) {
             isAsync ? this._async = true : this._async = false;
         }
     }, {
-        key: "onerror",
+        key: 'onerror',
         get: function get() {
             return this._onerror;
         },
@@ -139,7 +163,7 @@ var Hub = function (_Bhv) {
             this._onerror = fn;
         }
     }, {
-        key: "onsuccess",
+        key: 'onsuccess',
         get: function get() {
             return this._onsuccess;
         },
@@ -147,7 +171,7 @@ var Hub = function (_Bhv) {
             this._onsuccess = fn;
         }
     }, {
-        key: "onstart",
+        key: 'onstart',
         get: function get() {
             return this._onstart;
         },
@@ -155,7 +179,7 @@ var Hub = function (_Bhv) {
             this.req.onloadstart = this._onstart = fn;
         }
     }, {
-        key: "ondone",
+        key: 'ondone',
         get: function get() {
             return this._ondone;
         },
@@ -163,7 +187,7 @@ var Hub = function (_Bhv) {
             this._ondone = fn;
         }
     }, {
-        key: "onprogress",
+        key: 'onprogress',
         get: function get() {
             return this._onprogress;
         },
@@ -182,16 +206,17 @@ var Hub = function (_Bhv) {
         _this._onsuccess = null;
         _this._onstart = null;
         _this._ondone = null;
+        _this._queryString = {};
         _this.req.onreadystatechange = _this.statechange.bind(_this);
         _this.isHeaderSet = false;
 
-        if ((typeof method === "undefined" ? "undefined" : _typeof(method)) == "object") {
+        if ((typeof method === 'undefined' ? 'undefined' : _typeof(method)) == "object") {
             checkParam.call(_this, method);
             method = "GET";
-        } else if ((typeof param === "undefined" ? "undefined" : _typeof(param)) == "object") {
+        } else if ((typeof param === 'undefined' ? 'undefined' : _typeof(param)) == "object") {
             checkParam.call(_this, param);
             param = "";
-        } else if ((typeof async === "undefined" ? "undefined" : _typeof(async)) == "object") {
+        } else if ((typeof async === 'undefined' ? 'undefined' : _typeof(async)) == "object") {
             checkParam.call(_this, async);
             async = true;
         }
@@ -208,7 +233,7 @@ var Hub = function (_Bhv) {
             //if (typeof Object.keys(arr)[0] == "function") {
             arr.forEach(function (callback) {
                 if (CALLBACKS.indexOf(callback) == -1) {
-                    console.error("Only " + CALLBACKS + " are permitted as callback");
+                    console.error('Only ' + CALLBACKS + ' are permitted as callback');
                     return;
                 } else _this3[callback] = obj[callback];
             });
@@ -221,7 +246,7 @@ var Hub = function (_Bhv) {
     }
 
     _createClass(Hub, [{
-        key: "statechange",
+        key: 'statechange',
         value: function statechange(e) {
             //debugger
             var req = e.target;
@@ -242,27 +267,32 @@ var Hub = function (_Bhv) {
             }
         }
     }, {
-        key: "addParam",
+        key: 'addParam',
         value: function addParam() {
             for (var _len = arguments.length, param = Array(_len), _key = 0; _key < _len; _key++) {
                 param[_key] = arguments[_key];
             }
 
-            if (typeof param[0] == "string") param = param[0] + "=" + param[1];else param = param[0];
+            if (typeof param[0] == "string") param = param[0] + '=' + param[1];else param = param[0];
 
             this.queryString = param;
 
             return this;
         }
     }, {
-        key: "setRequestHeader",
+        key: 'cleanParam',
+        value: function cleanParam() {
+            this.queryString = {};
+        }
+    }, {
+        key: 'setRequestHeader',
         value: function setRequestHeader(header, value) {
             this.isHeaderSet = true;
             this.req.setRequestHeader(header, value);
             return this;
         }
     }, {
-        key: "connect",
+        key: 'connect',
         value: function connect() {
             if (this.url) {
 
@@ -282,7 +312,7 @@ var Hub = function (_Bhv) {
             return this;
         }
     }], [{
-        key: "connect",
+        key: 'connect',
         value: function connect() {
             for (var _len2 = arguments.length, param = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
                 param[_key2] = arguments[_key2];
@@ -339,16 +369,12 @@ hub.onprogress = () =>{
         onstart: (result) => { console.log("start") }
     })*/
 
-var hub2 = Hub.connect(ROOT + "index.php", "POST", "data=prova", {
-    onsuccess: function onsuccess(result) {
-        console.log(result.response);
-    },
-    ondone: function ondone(result) {
-        console.log("end");
-    },
-    onstart: function onstart(result) {
-        console.log("start");
-    }
-});
+var hub2 = new Hub(ROOT + 'index.php', "POST"
+/*{
+    onsuccess: (result) => { console.log(result.response) },
+    ondone: (result) => { console.log("end") },
+    onstart: (result) => { console.log("start") }
+}*/
+).addParam("data", "value").addParam({ testo: "testo" }).connect();
 
-//hub2.debug;
+hub2.debug;
