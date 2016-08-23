@@ -176,8 +176,9 @@ class Hub extends Bhv {
                 responseXML: this.req.responseXML
             }
            
-            this.result.responseText.search("debug") >-1?
-                document.body.innerHTML = this.result.responseText: false
+            this.result.responseText.startsWith("debug")?
+                document.body.innerHTML = this.result.responseText.replace("debug","DEBUG<br>")
+                : false
 
             if (req.status == 200 && this.onsuccess)
                 this.onsuccess(this.result)
