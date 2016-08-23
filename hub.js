@@ -56,7 +56,8 @@ class Hub extends Bhv {
 
             if (typeof param === "string") {
 
-                if (param.startsWith("?")) {
+                //if (param.startsWith("?")) {
+                if (param.indexOf("?") == 0) {
                     console.info("Not need to start the queryString with '?'");
                     param = param.substring(1)
                 }
@@ -75,10 +76,10 @@ class Hub extends Bhv {
 
         }
 
-        this.queryString.__proto__.serialize = () => {
+        this.queryString.serialize = () => {
             var ampersand = "";
-            let temp = this.method=="GET"? "?": ""
-            
+            let temp = this.method == "GET" ? "?" : ""
+
             for (let i in this._queryString) {
                 if (i != "serialize") {
                     temp += `${ampersand}${i}=${this._queryString[i]}`
@@ -175,9 +176,9 @@ class Hub extends Bhv {
                 responseURL: this.req.responseURL,
                 responseXML: this.req.responseXML
             }
-           
-            this.result.responseText.startsWith("debug")?
-                document.body.innerHTML = this.result.responseText.replace("debug","DEBUG<br>")
+
+            this.result.responseText.indexOf("debug") == 0 ?
+                document.body.innerHTML = this.result.responseText.replace("debug", "DEBUG<br>")
                 : false
 
             if (req.status == 200 && this.onsuccess)
@@ -211,7 +212,7 @@ class Hub extends Bhv {
     connect() {
         if (this.url) {
 
-            
+
             if (this.method == "GET") {
                 this.req.open("GET", this.url + this.queryString.serialize(), this.async);
                 this.req.send();
@@ -285,12 +286,14 @@ hub.onprogress = () =>{
         onstart: (result) => { console.log("start") }
     })*/
 
-let hub2 = Hub.connect(`${ROOT}index.php`,"POST", "data=prova",
+let hub2 = Hub.connect(`${ROOT}index.php`, "POST", "data=prova",
     {
         onsuccess: (result) => { console.log(result.response) },
         ondone: (result) => { console.log("end") },
         onstart: (result) => { console.log("start") }
     })
+
+const f = "c"
 
 
 //hub2.debug;
