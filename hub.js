@@ -113,7 +113,7 @@ class Hub extends Bhv {
 
         }
 
-        this.queryString.__proto__.serialize = () => {
+        this.queryString.serialize = () => {
             var ampersand = "";
             let temp = this.method == "GET" ? "?" : ""
 

@@ -132,7 +132,7 @@ var Hub = function (_Bhv) {
                 }
             }
 
-            this.queryString.__proto__.serialize = function () {
+            this.queryString.serialize = function () {
                 var ampersand = "";
                 var temp = _this2.method == "GET" ? "?" : "";
 
