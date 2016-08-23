@@ -1,3 +1,16 @@
+
+(function () {
+    const DEBUG = false
+    var oldLog = console.log;
+    if (DEBUG)
+        console.log = function (message) {
+            // DO MESSAGE HERE.
+            document.body.innerHTML += message + "<br>"
+        };
+})();
+
+
+
 const ROOT = "../../"
 const CALLBACKS = ["onsuccess", "ondone", "onstart", "onerror"]
 //const READYSTATE = [0,1,2,3,4]
@@ -121,6 +134,7 @@ class Hub extends Bhv {
         this._onstart = null
         this._ondone = null
         this.req.onreadystatechange = this.statechange.bind(this)
+        this.isHeaderSet = false
 
 
         if (typeof method == "object") {
@@ -205,6 +219,7 @@ class Hub extends Bhv {
     }
 
     setRequestHeader(header, value) {
+        this.isHeaderSet = true
         this.req.setRequestHeader(header, value);
         return this;
     }
@@ -219,7 +234,7 @@ class Hub extends Bhv {
             }
             else {
                 this.req.open("POST", this.url, this.async)
-                if (this.req.getAllResponseHeaders() == "") {
+                if (!this.isHeaderSet) {
                     this.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
                 }
 
@@ -293,7 +308,9 @@ let hub2 = Hub.connect(`${ROOT}index.php`, "POST", "data=prova",
         onstart: (result) => { console.log("start") }
     })
 
-const f = "c"
+
+
+
 
 
 //hub2.debug;

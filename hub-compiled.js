@@ -12,6 +12,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+(function () {
+    var DEBUG = false;
+    var oldLog = console.log;
+    if (DEBUG) console.log = function (message) {
+        // DO MESSAGE HERE.
+        document.body.innerHTML += message + "<br>";
+    };
+})();
+
 var ROOT = "../../";
 var CALLBACKS = ["onsuccess", "ondone", "onstart", "onerror"];
 //const READYSTATE = [0,1,2,3,4]
@@ -174,6 +183,7 @@ var Hub = function (_Bhv) {
         _this._onstart = null;
         _this._ondone = null;
         _this.req.onreadystatechange = _this.statechange.bind(_this);
+        _this.isHeaderSet = false;
 
         if ((typeof method === "undefined" ? "undefined" : _typeof(method)) == "object") {
             checkParam.call(_this, method);
@@ -247,6 +257,7 @@ var Hub = function (_Bhv) {
     }, {
         key: "setRequestHeader",
         value: function setRequestHeader(header, value) {
+            this.isHeaderSet = true;
             this.req.setRequestHeader(header, value);
             return this;
         }
@@ -260,7 +271,7 @@ var Hub = function (_Bhv) {
                     this.req.send();
                 } else {
                     this.req.open("POST", this.url, this.async);
-                    if (this.req.getAllResponseHeaders() == "") {
+                    if (!this.isHeaderSet) {
                         this.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                     }
 
@@ -339,7 +350,5 @@ var hub2 = Hub.connect(ROOT + "index.php", "POST", "data=prova", {
         console.log("start");
     }
 });
-
-var f = "c";
 
 //hub2.debug;
