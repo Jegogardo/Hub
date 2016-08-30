@@ -1,68 +1,13 @@
+//const ROOT = "../../"
 
-(function () {
-    const DEBUG = false
-    var oldLog = console.log;
-    if (DEBUG)
-        console.log = function (message) {
-            // DO MESSAGE HERE.
-            document.body.innerHTML += message + "<br>"
-        };
-})();
-
-
-//Polyfill Object.assign
-if (typeof Object.assign != 'function') {
-  Object.assign = function(target) {
-    'use strict';
-    if (target == null) {
-      throw new TypeError('Cannot convert undefined or null to object');
-    }
-
-    target = Object(target);
-    for (var index = 1; index < arguments.length; index++) {
-      var source = arguments[index];
-      if (source != null) {
-        for (var key in source) {
-          if (Object.prototype.hasOwnProperty.call(source, key)) {
-            target[key] = source[key];
-          }
-        }
-      }
-    }
-    return target;
-  };
-}
-
-
-
-const ROOT = "../../"
-const CALLBACKS = ["onsuccess", "ondone", "onstart", "onerror"]
 //const READYSTATE = [0,1,2,3,4]
 //const STATUS
 
-
-
-class Bhv {
-
-    static testStr(str) {
-        console.log(str || `This is ${this.name} class in Behaviour`);
-    }
-
-
-    static whereami(str) {
-        console.log(str || "I'm here!!!");
-    }
-
-    get debug() { console.log(this) }
-    set debug(obj) {
-        console.log(obj)
-    }
-
-
-}
-
 class Hub extends Bhv {
 
+    static get EVENTS(){ return {
+        onsuccess:"onHubSuccess", onstart:"onHubStart",
+        ondone:"onHubDone", onerror:"onHubError" } }
 
     get url() { return this._url }
     set url(url) {
@@ -73,7 +18,7 @@ class Hub extends Bhv {
         else
             this._url = url
 
-    }
+            }
 
 
     get method() { return this._method; }
@@ -81,8 +26,8 @@ class Hub extends Bhv {
 
         if (m === "GET" || m === "POST")
             this._method = m
-        else
-            console.error("Method can be set to GET or POST value");
+            else
+                console.error("Method can be set to GET or POST value");
     }
 
     get queryString() { return this._queryString }
@@ -160,7 +105,13 @@ class Hub extends Bhv {
         this._queryString = {}
         this.req.onreadystatechange = this.statechange.bind(this)
         this.isHeaderSet = false
-
+        this._events = Hub.EVENTS
+        for( let i in this._events  ){
+            let temp = document.createEvent("Event")
+            temp.initEvent( this._events[ i ], true, true )
+            temp.page = this
+            this._events[ i ] = temp
+        }
 
         if (typeof method == "object") {
             checkParam.call(this, method)
@@ -186,14 +137,16 @@ class Hub extends Bhv {
             let arr = Object.keys(obj)
             //if (typeof Object.keys(arr)[0] == "function") {
             arr.forEach((callback) => {
-                if (CALLBACKS.indexOf(callback) == -1) {
-                    console.error(`Only ${CALLBACKS} are permitted as callback`)
-                    return
-                }
+                if (callback in Hub.EVENTS)
+                    if( typeof obj[callback] == "function" )
+                        this[callback] = obj[callback];
+                    else
+                        return console.error("Only functions are permitted as callback ");
+
                 else
-                    this[callback] = obj[callback]
-            }
-            )
+                    return console.error(`Only ${Object.keys(Hub.EVENTS)} are permitted as callback`)
+                    }
+                       )
             /*}
             else
                 return obj*/
@@ -215,17 +168,26 @@ class Hub extends Bhv {
                 responseURL: this.req.responseURL,
                 responseXML: this.req.responseXML
             }
-
             this.result.responseText.indexOf("debug") == 0 ?
                 document.body.innerHTML = this.result.responseText.replace("debug", "DEBUG<br>")
-                : false
+            : false
 
-            if (req.status == 200 && this.onsuccess)
-                this.onsuccess(this.result)
-            if (req.status == 404 && this.onerror)
-                this.onerror(this.result)
-            if (this.ondone)
+            if (req.status == 200){
+                if( this.onsuccess )
+                    this.onsuccess(this.result)
+
+                document.dispatchEvent( this._events.onsuccess )
+            }
+            if (req.status == 404){
+                if(this.onerror)
+                    this.onerror(this.result)
+
+                document.dispatchEvent( this._events.onerror )
+            }
+            if (this.ondone){
                 this.ondone(this.result)
+            }
+            document.dispatchEvent( this._events.ondone )
 
         }
 
@@ -235,12 +197,12 @@ class Hub extends Bhv {
     addParam(...param) {
         if (typeof param[0] == "string")
             param = `${param[0]}=${param[1]}`
-        else
-            param = param[0]
+            else
+                param = param[0]
 
-        this.queryString = param
+                this.queryString = param
 
-        return this
+                return this
     }
 
     cleanParam(){
@@ -260,14 +222,15 @@ class Hub extends Bhv {
             if (this.method == "GET") {
                 this.req.open("GET", this.url + this.queryString.serialize(), this.async);
                 this.req.send();
+                document.dispatchEvent( this._events.onstart )
             }
             else {
                 this.req.open("POST", this.url, this.async)
                 if (!this.isHeaderSet) {
                     this.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
                 }
-
                 this.req.send(this.queryString.serialize())
+                document.dispatchEvent( this._events.onstart )
 
 
             }
@@ -294,6 +257,39 @@ class Hub extends Bhv {
 
 }
 
+/*let hub = new Hub( `${ROOT}index2.php`,"POST",{
+    onstart: result=>{console.log("inizio con la callback")},
+    ondone: result=>{console.log("fine con la callback")},
+    onsuccess: result=>{console.log("tutto OK con la callback")},
+    onerror: result=>{console.error("errore con la callback")}
+} );
+document.addEventListener("onHubStart", result=>{
+    console.log("inizio con il listener");
+})
+document.addEventListener("onHubDone", result=>{
+    console.log("fine con il listener");
+})
+document.addEventListener("onHubSuccess", result=>{
+    console.log("tutto OK con il listener");
+})
+document.addEventListener("onHubError", result=>{
+    console.error("errore con il listener");
+})
+
+hub.connect()*/
+/*hub.onerror = (result)=>{
+    console.error( "Errore" );
+}
+hub.onsuccess = ( result ) =>{
+    console.log( "Successo" );
+}
+hub.onstart = () =>{
+    console.info( "Iniziato" );
+}
+hub.ondone = (result) =>{
+    console.info( "Finito");
+}
+hub.connect()*/
 //let hub = new Hub( "prova","GET",{data:"",t:"c"} );
 /*let hub = new Hub( `${ROOT}inde.php`,"POST", "data=&t=c" );
 hub.onerror = (result)=>{
@@ -330,17 +326,12 @@ hub.onprogress = () =>{
         onstart: (result) => { console.log("start") }
     })*/
 
-let hub2 = new Hub(`${ROOT}index.php`, "POST"
-    /*{
+/*let hub2 = new Hub(`${ROOT}index.php`, "POST"
+    {
         onsuccess: (result) => { console.log(result.response) },
         ondone: (result) => { console.log("end") },
         onstart: (result) => { console.log("start") }
-    }*/
+    }
     ).addParam("data","value").addParam({testo:"testo"}).connect()
 
-
-
-
-
-
-hub2.debug;
+hub2.debug;*/
