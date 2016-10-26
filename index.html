@@ -7,8 +7,19 @@
   <div></div>
     <p></p>
     <span></span>
-<input type="file">
+<!-- <input type="file"> -->
 </form>
 </body>
-<script src="hub-compiled.js"></script>
+<!-- <script src="../Bhv-compiled.js"></script> -->
+<script src="hub.js"></script>
 
+<script>
+
+    var conn = new Hub("../../index2.php");
+    conn.ondone=function(result){
+       // debugger;
+        document.write(result.responseText)}
+
+    conn.connect();
+
+</script>

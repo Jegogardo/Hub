@@ -8,18 +8,12 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 //const ROOT = "../../"
 
 //const READYSTATE = [0,1,2,3,4]
 //const STATUS
 
-var Hub = function (_Bhv) {
-    _inherits(Hub, _Bhv);
-
+var Hub = function () {
     _createClass(Hub, [{
         key: "url",
         get: function get() {
@@ -46,7 +40,7 @@ var Hub = function (_Bhv) {
             return this._queryString;
         },
         set: function set(param) {
-            var _this2 = this;
+            var _this = this;
 
             //this._queryString = {}
             //debugger
@@ -63,7 +57,7 @@ var Hub = function (_Bhv) {
                     //debugger
                     param.forEach(function (a) {
                         var b = a.split("=");
-                        _this2._queryString[b[0]] = b[1];
+                        _this._queryString[b[0]] = b[1];
                     });
                 } else {
                     this._queryString = Object.assign(this._queryString, param);
@@ -72,11 +66,11 @@ var Hub = function (_Bhv) {
 
             this.queryString.serialize = function () {
                 var ampersand = "";
-                var temp = _this2.method == "GET" ? "?" : "";
+                var temp = _this.method == "GET" ? "?" : "";
 
-                for (var i in _this2._queryString) {
+                for (var i in _this._queryString) {
                     if (i != "serialize") {
-                        temp += "" + ampersand + i + "=" + _this2._queryString[i];
+                        temp += "" + ampersand + i + "=" + _this._queryString[i];
                         var ampersand = "&";
                     }
                 }
@@ -141,59 +135,56 @@ var Hub = function (_Bhv) {
         }
     }]);
 
-    function Hub(url, method, param, async, callbacks) {
+    function Hub(url, method, param, _async, callbacks) {
         _classCallCheck(this, Hub);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Hub).call(this));
-
-        _this.req = new XMLHttpRequest();
-        _this._onerror = null;
-        _this._onsuccess = null;
-        _this._onstart = null;
-        _this._ondone = null;
-        _this._queryString = {};
-        _this.req.onreadystatechange = _this.statechange.bind(_this);
-        _this.isHeaderSet = false;
-        _this._events = Hub.EVENTS;
-        for (var i in _this._events) {
+        //super()
+        this.req = new XMLHttpRequest();
+        this._onerror = null;
+        this._onsuccess = null;
+        this._onstart = null;
+        this._ondone = null;
+        this._queryString = {};
+        this.req.onreadystatechange = this.statechange.bind(this);
+        this.isHeaderSet = false;
+        this._events = Hub.EVENTS;
+        for (var i in this._events) {
             var temp = document.createEvent("Event");
-            temp.initEvent(_this._events[i], true, true);
-            temp.page = _this;
-            _this._events[i] = temp;
+            temp.initEvent(this._events[i], true, true);
+            temp.page = this;
+            this._events[i] = temp;
         }
 
         if ((typeof method === "undefined" ? "undefined" : _typeof(method)) == "object") {
-            checkParam.call(_this, method);
+            checkParam.call(this, method);
             method = "GET";
         } else if ((typeof param === "undefined" ? "undefined" : _typeof(param)) == "object") {
-            checkParam.call(_this, param);
+            checkParam.call(this, param);
             param = "";
-        } else if ((typeof async === "undefined" ? "undefined" : _typeof(async)) == "object") {
-            checkParam.call(_this, async);
-            async = true;
+        } else if ((typeof _async === "undefined" ? "undefined" : _typeof(_async)) == "object") {
+            checkParam.call(this, _async);
+            _async = true;
         }
 
-        _this.url = url || null;
-        _this.method = method || "GET";
-        _this.queryString = param || null;
-        _this.async = async || true;
+        this.url = url || null;
+        this.method = method || "GET";
+        this.queryString = param || null;
+        this.async = _async || true;
 
         function checkParam(obj) {
-            var _this3 = this;
+            var _this2 = this;
 
             var arr = Object.keys(obj);
             //if (typeof Object.keys(arr)[0] == "function") {
             arr.forEach(function (callback) {
                 if (callback in Hub.EVENTS) {
-                    if (typeof obj[callback] == "function") _this3[callback] = obj[callback];else return console.error("Only functions are permitted as callback ");
+                    if (typeof obj[callback] == "function") _this2[callback] = obj[callback];else return console.error("Only functions are permitted as callback ");
                 } else return console.error("Only " + Object.keys(Hub.EVENTS) + " are permitted as callback");
             });
             /*}
             else
                 return obj*/
         }
-
-        return _this;
     }
 
     _createClass(Hub, [{
@@ -249,6 +240,7 @@ var Hub = function (_Bhv) {
         key: "setRequestHeader",
         value: function setRequestHeader(header, value) {
             this.isHeaderSet = true;
+            this.req.requestHeader = [header, value];
             this.req.setRequestHeader(header, value);
             return this;
         }
@@ -263,7 +255,9 @@ var Hub = function (_Bhv) {
                     document.dispatchEvent(this._events.onstart);
                 } else {
                     this.req.open("POST", this.url, this.async);
-                    if (!this.isHeaderSet) {
+                    if (this.isHeaderSet) {
+                        this.setRequestHeader(this.req.requestHeader[0], this.req.requestHeader[1]);
+                    } else {
                         this.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                     }
                     this.req.send(this.queryString.serialize());
@@ -286,16 +280,16 @@ var Hub = function (_Bhv) {
             var url = _param[0];
             var method = _param[1];
             var param = _param[2];
-            var async = _param[3];
+            var _async = _param[3];
 
-            var temp = new this(url, method, param, async).connect();
+            var temp = new this(url, method, param, _async).connect();
 
             return temp;
         }
     }]);
 
     return Hub;
-}(Bhv);
+}();
 
 /*let hub = new Hub( `${ROOT}index2.php`,"POST",{
     onstart: result=>{console.log("inizio con la callback")},

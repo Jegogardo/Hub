@@ -3,7 +3,7 @@
 //const READYSTATE = [0,1,2,3,4]
 //const STATUS
 
-class Hub extends Bhv {
+class Hub  {
 
     static get EVENTS(){ return {
         onsuccess:"onHubSuccess", onstart:"onHubStart",
@@ -94,9 +94,9 @@ class Hub extends Bhv {
     set onprogress(fn) { this.req.onprogress = this._onprogress = fn }
 
 
-    constructor(url, method, param, async, callbacks) {
+    constructor(url, method, param, _async, callbacks) {
 
-        super()
+        //super()
         this.req = new XMLHttpRequest()
         this._onerror = null
         this._onsuccess = null
@@ -121,16 +121,16 @@ class Hub extends Bhv {
             checkParam.call(this, param)
             param = ""
         }
-        else if (typeof async == "object") {
-            checkParam.call(this, async)
-            async = true
+        else if (typeof _async == "object") {
+            checkParam.call(this, _async)
+            _async = true
         }
 
 
         this.url = url || null
         this.method = method || "GET"
         this.queryString = param || null
-        this.async = async || true
+        this.async = _async || true
 
 
         function checkParam(obj) {
@@ -211,6 +211,7 @@ class Hub extends Bhv {
 
     setRequestHeader(header, value) {
         this.isHeaderSet = true
+        this.req.requestHeader = [header,value]
         this.req.setRequestHeader(header, value);
         return this;
     }
@@ -226,7 +227,11 @@ class Hub extends Bhv {
             }
             else {
                 this.req.open("POST", this.url, this.async)
-                if (!this.isHeaderSet) {
+                if (this.isHeaderSet) {
+                    this.setRequestHeader(
+                        this.req.requestHeader[0], this.req.requestHeader[1])
+                }
+                else{
                     this.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
                 }
                 this.req.send(this.queryString.serialize())
@@ -244,8 +249,8 @@ class Hub extends Bhv {
 
     static connect(...param) {
         //debugger
-        var [url, method, param, async] = param
-        let temp = new this(url, method, param, async).connect()
+        var [url, method, param, _async] = param
+        let temp = new this(url, method, param, _async).connect()
 
         return temp
 
